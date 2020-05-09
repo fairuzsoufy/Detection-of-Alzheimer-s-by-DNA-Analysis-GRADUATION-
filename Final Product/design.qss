@@ -1,0 +1,23 @@
+#main_window
+{
+    background-color:#042c4d;
+}
+QPushButton{
+    color: #0d4f91;
+    font:15px;
+    border-radius: 7px;
+    background-color: 'white';
+}
+QLabel{
+    color: 'white';
+     font:9pt Arial Rounded MT Bold;
+}
+QLineEdit{
+    font:10pt;
+    background-color: 'white';
+}
+QRadioButton{
+    font:9pt;
+    color: 'white';
+
+}
