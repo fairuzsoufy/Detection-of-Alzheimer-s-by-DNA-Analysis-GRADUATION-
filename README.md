@@ -1,4 +1,4 @@
-By: Ahmed Samir - Fairuz Soufy - Omar Ehab - Sara Elbedeawi.
+By: Ahmed Samir - Fairuz Soufy - Omar Ehab - Sara Elbedeawi. \n
 Project Supervisor: Dr. Ashraf Abdelraouf.
 Assisted by: Dr. Lobna Shaheen.
 
