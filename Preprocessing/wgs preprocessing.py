@@ -18,10 +18,6 @@ from sklearn import preprocessing
 import pandas as pd
 from matplotlib import style
 
-style.use('ggplot')
-
-
-
 #extract wanted gene from chromosome file
 def searcher(start, end, inFile, OFile, path, name):
     try:
