@@ -218,29 +218,4 @@ def toCsv(path):
         print("Wrong file or file path")
 
         
-class admin(Tk):
-    def __init__(self):
-        super(admin, self).__init__()
-        self.title("Alzheimer's Analysis System")
-        self.geometry("538x500+682+227")
-        self.labelFrame = ttk.LabelFrame(self, text="Please Select Directory")
-        self.labelFrame.grid(column=0, row=1, padx=120, pady=60)
-        self.button()
-
-    def button(self):
-        self.button = ttk.Button(self.labelFrame, text="Select", command=self.fileDialog)
-        self.button.grid(column=1, row=1)
-
-    def fileDialog(self):
-        self.filename = askdirectory()
-        self.label = ttk.Label(self.labelFrame, text="")
-        self.label.grid(column=1, row=2)
-        self.label.configure(text=self.filename)
-        way = self.filename
-        filter(way)
-
 person(r"C:\Users\user\Desktop\Test") #Whole Genome Preprocessing
-
-############### SNPS Preprocessing ################
-# root = admin()
-# root.mainloop()
