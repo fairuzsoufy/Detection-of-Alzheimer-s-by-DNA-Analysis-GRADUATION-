@@ -68,11 +68,6 @@ def string_to_array(my_string):
     return my_array
 
 
-def remove_newlines(fname):
-    flist = open(fname).readlines()
-    return [s.rstrip('\n') for s in flist]
-
-
 def ordinal_encoder(my_array):
     integer_encoded = label_encoder.transform(my_array)
     float_encoded = integer_encoded.astype(float)
