@@ -13,145 +13,24 @@ import fileinput
 import string
 import csv
 import distance
-import os
 import glob
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.cluster import MeanShift
-from sklearn.cluster import MiniBatchKMeans
-from sklearn.cluster import AffinityPropagation
-from sklearn.cluster import SpectralClustering
 from sklearn import preprocessing
 import pandas as pd
 from matplotlib import style
-import time
 
-start_time = time.time()
 style.use('ggplot')
-label_encoder = LabelEncoder()
-label_encoder.fit(np.array(['a', 'c', 'g', 't', 'z']))
 
 
-def filter(path):
-    try:
 
-        x = '0'
-        directory = path
-
-        for filename in os.listdir(directory):
-            print(filename)
-            if filename.endswith(".csv"):
-                pdata = pd.read_csv(directory + "\\" + filename)
-
-                pdata = pdata[
-                    ((pdata['Chr'] == '1') | (pdata['Chr'] == '14') | (pdata['Chr'] == '19') | (pdata['Chr'] == '21')) &
-                    pdata['SNP Name'].str.match('rs')]
-                dataFrameOut = pdata[
-                    ############################## GRCH 37 ############################################
-                    # (((pdata['Chr'] == '1')) & (pdata['Position'].between(227047885, 227093804, inclusive=True))) |
-                    # ((pdata['Chr'] == '14') & (pdata['Position'].between(73593143, 73700399, inclusive=True))) |
-                    # ((pdata['Chr'] == '19') & (pdata['Position'].between(45399039, 45422650, inclusive=True))) |
-                    # ((pdata['Chr'] == '21') & (pdata['Position'].between(27242861, 27553446, inclusive=True)))]
-
-                    ############################## GRCH 36 ############################################
-                    (((pdata['Chr'] == '1')) & (pdata['Position'].between(225114896, 225160427, inclusive=True))) |
-                    ((pdata['Chr'] == '14') & (pdata['Position'].between(72662932, 72766862, inclusive=True))) |
-                    ((pdata['Chr'] == '19') & (pdata['Position'].between(50090879, 50114490, inclusive=True))) |
-                    ((pdata['Chr'] == '21') & (pdata['Position'].between(26164732, 26475003, inclusive=True)))]
-
-                z = str(filename)
-                dataFrameOut.drop(
-                    columns=['GC Score', 'Allele1 - Top', 'Allele2 - Top', 'Allele1 - AB', 'Allele2 - AB', 'Log R Ratio'
-                        , 'B Allele Freq', 'Y Raw', 'X Raw', 'Y', 'X', 'R', 'Theta', 'SNP', 'Cluster Sep', 'GT Score'])
-
-                export_csv = dataFrameOut.to_csv(directory + "\\" + "test" + z, header=True)
-
-                print(filename)
-                os.remove(directory + "\\" + filename)
-    except FileNotFoundError:
-        print("Wrong file or file path")
-    mergeCsv(path)
-
-
-def mergeCsv(path):
-    try:
-        os.chdir(path)
-        extension = 'csv'
-        all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
-        combined_csv = pd.concat([pd.read_csv(f) for f in all_filenames])
-        combined_csv.to_csv("total.csv", index=False, encoding='utf-8-sig')
-
-    except FileNotFoundError:
-        print("Wrong file or file path")
-
-
-def conversion(file):
-    df = pd.read_csv(file)
-    # print(df.head())
-    df.drop(['SNP', 'Allele1 - AB', 'Allele2 - AB', 'Allele1 - Top', 'Allele2 - Top', 'Cluster Sep'], 1,
-            inplace=True)
-    diag_dict = {"A": 1, "G": 2, "T": 3, "C": 4}
-    # //M:khabes B:7ameed
-    df['Allele1 - Forward'] = df['Allele1 - Forward'].map(diag_dict)
-    df['Allele2 - Forward'] = df['Allele2 - Forward'].map(diag_dict)
-
-    df = handle_non_numerical_data(df)
-    df.to_csv(r'E:\datasets\Diseased\Demo\NewTotal.csv')
-
-
-def Cluster(path):
-    df = pd.read_csv(path)
-    print(df.head())
-    df = df.dropna()
-    # df=df.drop(columns=['GC Score', 'Allele1 - Top', 'Allele2 - Top', 'Allele1 - AB', 'Allele2 - AB', 'Log R Ratio'
-    #      , 'B Allele Freq', 'Y Raw', 'X Raw', 'Y', 'X', 'R', 'Theta', 'SNP', 'Cluster Sep', 'GT Score'])
-    X = np.array(df.drop(['Sample Index'], 1).astype(float))
-    X = preprocessing.scale(X)
-    # kmeans22(X,df)
-    kmeans(X, df)
-    Minibatch(X, df)
-    # SC(X, df)
-    # affinity(X,df)
-
-
-def handle_non_numerical_data(df):
-    columns = df.columns.values
-    for column in columns:
-        x = 0
-        text_digit_vals = {}
-
-        def convert_to_int(val):
-            return text_digit_vals[val]
-
-        if df[column].dtype != np.int64 and df[column].dtype != np.float64:
-            column_contents = df[column].values.tolist()
-            unique_elements = set(column_contents)
-            # x = 0
-            for unique in unique_elements:
-                if unique not in text_digit_vals:
-                    text_digit_vals[unique] = x
-                    x += 1
-            df[column] = list(map(convert_to_int, df[column]))
-    return df
-
-
-def txtToCsv(file):
-    with open(file, 'r') as infile, open("testing.csv", 'w+') as outfile:
-        stripped = (line.strip() for line in infile)
-        lines = (line.split(",") for line in stripped if line)
-        writer = csv.writer(outfile)
-        writer.writerows(lines)
-
-
+#extract wanted gene from chromosome file
 def searcher(start, end, inFile, OFile, path, name):
     try:
         flag = 0
-        with open(inFile) as f1:  # NC_000021.9.gb
-            with open(OFile, 'w+') as f2:  # Output.gb
+        with open(inFile) as f1:
+            with open(OFile, 'w+') as f2:
                 lines = f1.readlines()
                 for i, line in enumerate(lines):
                     if line.__contains__(start):
-                        # f2.write(lines[i])
                         flag = 1
                     if (flag == 1):
                         f2.write(lines[i])
@@ -163,12 +42,10 @@ def searcher(start, end, inFile, OFile, path, name):
         os.remove(inFile)
 
     except FileNotFoundError:
-        print("Wrong file or file path")
+        print("Wrong file or file path.")
 
-
+#Removes all spaces and numbers only keeps the letters
 def removing(file, path, name):
-    # print("Removing")
-    # print(file)
     for line in fileinput.input(file, inplace=True):
         print(re.sub("\d+", "", line))
     f = open(file)
@@ -182,10 +59,6 @@ def removing(file, path, name):
         print(line.translate(string.digits))
     f.close()
     file = path + "\Stripped " + name + ".txt"
-    # print(path)
-    # toCv(path)
-    # divider(file,path,name)
-    # os.remove(file)
 
 
 def string_to_array(my_string):
@@ -249,7 +122,6 @@ def readFiles():
         if i.endswith('.txt'):
             files.append(open(i))
             f = open(i, 'w')
-            # func(f)
             print(i)
             f.close()
 
@@ -275,7 +147,6 @@ def hamming_distance(file1, file2):
 
 def oneHotEncoding():
     with open('GeneGrouped.txt', 'r') as myfile: data = myfile.read().replace('\n', '')
-    # print (ordinal_encoder(string_to_array(data)))
     np.savetxt("array.txt", ordinal_encoder(string_to_array(data)), fmt="%s")
     f = open('array.txt')
     contents = f.read()
@@ -285,6 +156,14 @@ def oneHotEncoding():
     f.write(new_contents)
     f.close()
     txtToCsv("array.txt")
+    
+    
+def txtToCsv(file):
+    with open(file, 'r') as infile, open("testing.csv", 'w+') as outfile:
+        stripped = (line.strip() for line in infile)
+        lines = (line.split(",") for line in stripped if line)
+        writer = csv.writer(outfile)
+        writer.writerows(lines)
 
 
 def person(path):
