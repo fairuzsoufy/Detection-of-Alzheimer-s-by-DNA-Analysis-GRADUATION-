@@ -96,20 +96,6 @@ def next_path(path_pattern):
     return path_pattern % b
 
 
-def divider(file_obj, path, name):
-    with open(file_obj, 'r') as file:
-        data = file.read()
-    string = data
-    n = 3
-    out = [(string[i:i + n]) for i in range(0, len(string), n)]
-    out = str(out).replace('[', '').replace(']', '').replace(',', '').replace("'", '').replace("n", "").replace("\\",
-                                                                                                                '')
-
-    # print("Function func")
-    with open(path + "\Grouped " + name + ".txt", 'w') as w:
-        w.write(str(out))
-        w.close()
-
 
 def readFiles():
     files = []
