@@ -9,7 +9,7 @@ import glob
 import pandas as pd
 from matplotlib import style
 import time
-
+low_memory=False
 start_time = time.time()
 style.use('ggplot')
 label_encoder = LabelEncoder()
@@ -68,15 +68,32 @@ def mergeCsv(path):
     except FileNotFoundError:
         print("Wrong file or file path")
 
-    score("total.csv", 'sara.csv', 'Normal.csv')
+    score("total.csv", r'C:\Users\user\Desktop\project\New folder\sara.csv', r'C:\Users\user\Desktop\project\New folder\Normal.csv')
 
 
 def score(path1, path2, path3):
     df1 = pd.read_csv(path1)
     df1 = df1.drop(
-        columns=['Allele2 - Plus', 'Allele1 - Plus', 'Chr', 'Position', 'Unnamed: 0', 'GC Score', 'SNP Index',
+        columns=['Chr', 'Position','GC Score', 'SNP Index',
                  'Sample Index', 'Allele1 - Top', 'Allele2 - Top', 'Allele1 - AB', 'Allele2 - AB', 'Log R Ratio'
             , 'B Allele Freq', 'Y Raw', 'X Raw', 'Y', 'X', 'R', 'Theta', 'SNP', 'Cluster Sep', 'GT Score'])
+
+
+    try:
+        df1 = df1.drop(
+            columns=['Allele2 - Plus', 'Allele1 - Plus'])
+    except KeyError:
+        print ("adni 2")
+    try:
+        df1 = df1.drop(
+            columns=['Unnamed: 0'])
+    except KeyError:
+        print ("u")
+    
+#     df1 = df1.drop(
+#         columns=['Allele2 - Plus', 'Allele1 - Plus', 'Chr', 'Position', 'Unnamed: 0', 'GC Score', 'SNP Index',
+#                  'Sample Index', 'Allele1 - Top', 'Allele2 - Top', 'Allele1 - AB', 'Allele2 - AB', 'Log R Ratio'
+#             , 'B Allele Freq', 'Y Raw', 'X Raw', 'Y', 'X', 'R', 'Theta', 'SNP', 'Cluster Sep', 'GT Score'])
     # df.head()
     df1["Score 1"] = ""
     # df1["Score 2"] = ""
@@ -97,7 +114,7 @@ def score(path1, path2, path3):
     values = [0, 1, 1, 2]
 
     df['Score 1'] = np.select(conditions, values, 3)
-    export_csv = df.to_csv(r'1st.csv', index=1, header=True)
+    export_csv = df.to_csv(r'1st.csv', header=True,index=False)
     dfOriginal = pd.read_csv("1st.csv")
 
     snps = dfOriginal['SNP Name'].unique()
@@ -111,11 +128,14 @@ def score(path1, path2, path3):
     for i in range(len(dfOriginal) - 1):
         df[dfOriginal['SNP Name'][i]][dfOriginal['Sample ID'][i]] = dfOriginal['Score 1'][i]
     df.insert(0, 'Status', 'Diseased')
-    export_csv = df.to_csv(r'lastOne.csv', index=1, header=True)
+    export_csv = df.to_csv(r'lastOne.csv', index=False, header=True)
     df1 = pd.read_csv("lastOne.csv")
     df2 = pd.read_csv(path3)
     dfAll = pd.concat((df1, df2), sort=False).reindex(columns=df1.columns)
-    export_csv = dfAll.to_csv(r'Total_Scored.csv', index=1, header=True)
+    export_csv = dfAll.to_csv(r'Total_Scored.csv', header=True,index=False)
+    df=pd.read_csv('Total_Scored.csv')
+#     df = df.drop(columns=['Unnamed: 0'])
+#     df.to_csv("Total_Scored2.csv")    
 
 class admin(Tk):
     def __init__(self):
@@ -139,5 +159,5 @@ class admin(Tk):
         filter(way)
 
 
-root = admin()
-root.mainloop()
+# root = admin()
+# root.mainloop()
