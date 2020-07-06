@@ -1,12 +1,10 @@
-import _pickle
 import hashlib
 import numpy as np
-import threading
 import firebase_admin
 import pandas as pd
 import sklearn
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPainter, QPen
 from PyQt5.QtWidgets import QLineEdit, QMessageBox, QMainWindow
 from PyQt5.QtCore import Qt, QDir
 from firebase_admin import credentials, firestore
@@ -22,6 +20,7 @@ global type
 global found
 global filename
 
+#Firebase credentials
 cred = credentials.Certificate(r"E:\Users\user\PycharmProjects\untitled1\venv\alzheimer-4a38b-firebase-adminsdk-e29rr-2e0781f010.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
@@ -39,8 +38,6 @@ class Ui_MainWindow(object):
             stylesheet=f.read()
         MainWindow.setStyleSheet(stylesheet)
         MainWindow.setWindowIcon(QIcon(r"E:\Users\user\PycharmProjects\untitled1\venv\Dna-icon.png"))
-        # MainWindow.setStyleSheet("background: '#042c4d'")
-
    ########################## Home #################################
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -80,7 +77,6 @@ class Ui_MainWindow(object):
 
 
         #################### Login ####################
-
 
         self.QLineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.QLineEdit.setGeometry(QtCore.QRect(360, 190, 151, 31))
@@ -204,14 +200,20 @@ class Ui_MainWindow(object):
         self.back_arrow.setStyleSheet("color: 'white'; font:55px")
         self.back_arrow.mousePressEvent=self.back_pressed
 
-        ############## researcher page ############################
+        ############## Researcher page ############################
 
         self.pushButton1 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton1.setGeometry(QtCore.QRect(220, 200, 93, 28))
+        self.pushButton1.setGeometry(QtCore.QRect(170, 150, 93, 28))
         self.pushButton1.setObjectName("pushButton1")
         self.pushButton1.setStyleSheet(stylesheet)
+
+        self.pushButton_cluster = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_cluster.setGeometry(QtCore.QRect(170, 290, 93, 28))
+        self.pushButton_cluster.setObjectName("pushButton_cluster")
+        self.pushButton_cluster.setStyleSheet(stylesheet)
+
         self.Researcher_label = QtWidgets.QLabel(self.centralwidget)
-        self.Researcher_label.setGeometry(QtCore.QRect(230, 50, 111, 36))
+        self.Researcher_label.setGeometry(QtCore.QRect(230, 20, 111, 36))
         self.Researcher_label.setObjectName("Researcher_label")
         self.Researcher_label.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
 
@@ -220,16 +222,35 @@ class Ui_MainWindow(object):
         self.result_label.setObjectName("result_label")
         self.result_label.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
 
-        self.classify_result = QtWidgets.QLabel(self.centralwidget)
-        self.classify_result.setGeometry(QtCore.QRect(400, 400, 111, 36))
-        self.classify_result.setObjectName("classify_result")
-        self.classify_result.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
+        self.svr_label = QtWidgets.QLabel(self.centralwidget)
+        self.svr_label.setGeometry(QtCore.QRect(160, 80, 111, 36))
+        self.svr_label.setObjectName("SVR")
+        self.svr_label.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
+
+
+        self.cluster_label = QtWidgets.QLabel(self.centralwidget)
+        self.cluster_label.setGeometry(QtCore.QRect(160, 220, 111, 36))
+        self.cluster_label.setObjectName("Cluster")
+        self.cluster_label.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
+
+
+        self.svr_result = QtWidgets.QLabel(self.centralwidget)
+        self.svr_result.setGeometry(QtCore.QRect(400, 400, 111, 36))
+        self.svr_result.setObjectName("svr_result")
+        self.svr_result.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
 
         self.label13 = QtWidgets.QLabel(self.centralwidget)
-        self.label13.setGeometry(QtCore.QRect(210, 140, 241, 31))
+        self.label13.setGeometry(QtCore.QRect(170, 110, 241, 31))
         self.label13.setObjectName("label")
         self.label13.setStyleSheet(stylesheet)
-        self.pushButton1.clicked.connect(self.researcher_upload)
+        self.pushButton1.clicked.connect(self.test_svr)
+
+        self.pushButton_cluster.clicked.connect(self.test_cluster)
+
+        self.label_cluster = QtWidgets.QLabel(self.centralwidget)
+        self.label_cluster.setGeometry(QtCore.QRect(170, 250, 241, 31))
+        self.label_cluster.setObjectName("label_cluster")
+        self.label_cluster.setStyleSheet(stylesheet)
 
 ######################### ADMIN PAGE #####################################
         self.pushButton2 = QtWidgets.QPushButton(self.centralwidget)
@@ -257,8 +278,8 @@ class Ui_MainWindow(object):
         self.train_result.setStyleSheet("color: 'white'; font:14pt Arial Rounded MT Bold")
 
 
-        self.retranslateUi(MainWindow)
 
+        self.retranslateUi(MainWindow)
 
         self.hide_login()
         self.hide_register()
@@ -288,10 +309,14 @@ class Ui_MainWindow(object):
         self.researcher_radiobutton.setText(_translate("Register", "Researcher"))
         self.label_12.setText(_translate("Register", "Type"))
         self.pushButton1.setText(_translate("Researcher", "Choose"))
+        self.pushButton_cluster.setText(_translate("Researcher", "Choose"))
         self.Researcher_label.setText(_translate("Researcher", "Researcher"))
+        self.svr_label.setText(_translate("Researcher", "Classify"))
+        self.cluster_label.setText(_translate("Researcher", "Cluster"))
         self.result_label.setText(_translate("Researcher", "Result:"))
-        self.classify_result.setText(_translate("Researcher", " "))
+        self.svr_result.setText(_translate("Researcher", " "))
         self.label13.setText(_translate("Researcher", "Please select the file"))
+        self.label_cluster.setText(_translate("Researcher", "Please select the file"))
 
         self.pushButton2.setText(_translate("Admin", "Choose"))
         self.admin_label.setText(_translate("Admin", "Admin"))
@@ -300,20 +325,24 @@ class Ui_MainWindow(object):
         self.label14.setText(_translate("Admin", "Please select the dataset file"))
 
     def admin_upload(self):
-
-
         filename, _filter = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', r"C:\Users\user\Desktop", '*.csv')
+        self.svr_training(filename)
 
-        print(filename)
-        self.train(filename)
-
-    def researcher_upload(self):
+    def test_svr(self):
 
         filename, _filter = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', r"C:\Users\user\Desktop", '*.csv')
 
         print(filename)
 
-        self.classify(filename)
+        self.svr_testing(filename)
+
+    def test_cluster(self):
+
+        filename, _filter = QtWidgets.QFileDialog.getOpenFileName(None, 'Open File', r"C:\Users\user\Desktop", '*.csv')
+
+        print(filename)
+
+        self.cluster_testing(filename)
 
     def back_pressed(self,event):
         self.hide_register()
@@ -417,20 +446,28 @@ class Ui_MainWindow(object):
     def show_researcher_upload(self):
         self.centralwidget.show()
         self.pushButton1.show()
+        self.pushButton_cluster.show()
         self.Researcher_label.show()
         self.label13.show()
+        self.cluster_label.show()
+        self.svr_label.show()
+        self.label_cluster.show()
         self.back_arrow.show()
-        self.result_label.show()
-        self.classify_result.show()
+        # self.result_label.show()
+        self.svr_result.show()
 
     def hide_researcher_upload(self):
         # self.centralwidget.hide()
         self.pushButton1.hide()
+        self.pushButton_cluster.hide()
         self.Researcher_label.hide()
         self.label13.hide()
+        self.cluster_label.hide()
+        self.svr_label.hide()
+        self.label_cluster.hide()
         self.back_arrow.hide()
         self.result_label.hide()
-        self.classify_result.hide()
+        self.svr_result.hide()
 
     def show_admin_upload(self):
         self.centralwidget.show()
@@ -438,8 +475,8 @@ class Ui_MainWindow(object):
         self.admin_label.show()
         self.label14.show()
         self.back_arrow.show()
-        self.result_label2.show()
-        self.train_result.show()
+        self.result_label2.hide()
+        self.train_result.hide()
 
     def hide_admin_upload(self):
         self.pushButton2.hide()
@@ -452,11 +489,6 @@ class Ui_MainWindow(object):
     def Loginclick(self):
         self.hide_home()
         self.show_login()
-
-        # self.window=QtWidgets.QMainWindow()
-        # self.ui=Ui_Login()
-        # self.ui.setupUi(self.window)
-        # self.window.show()
 
     def Registerclick(self):
         self.hide_home()
@@ -573,6 +605,7 @@ class Ui_MainWindow(object):
             msg.setWindowTitle("Login Failed")
             msg.exec_()
 
+    #Encrypts password
     def sha(self,word):
         enc = hashlib.sha384(word.encode())
         result=enc.hexdigest()
@@ -598,30 +631,30 @@ class Ui_MainWindow(object):
                 df[column] = list(map(convert_to_int, df[column]))
         return df
 
-    def classify(self,path):
+    def svr_testing(self, path):
         df = pd.read_csv(path)
 
         clf3 = load('SVR_93.joblib')
+
         df = self.handle_non_numerical_data(df)
 
         df = df.dropna(axis='rows')
 
         arr = clf3.predict(df)
-
+        self.result_label.show()
         for i in range(len(arr)):
-
+            print(arr[i])
             if arr[i] < 0.5:
 
                 print("diseased")
-                self.classify_result.setText("Diseased")
+                self.svr_result.setText("Diseased")
 
             else:
 
                 print("Normal")
-                self.classify_result.setText("Normal")
+                self.svr_result.setText("Normal")
 
-
-    def train(self,path):
+    def svr_training(self, path):
 
         df = pd.read_csv(path)  # csv da no3 el dataset -- df stands for data frame
 
@@ -670,7 +703,28 @@ class Ui_MainWindow(object):
         clf.fit(X_train, y_train)
         accuracy=int(clf.score(X_test, y_test)*100)
         self.train_result.setText(str(accuracy)+"%")
+        self.result_label2.show()
+        self.train_result.show()
 
+    def cluster_testing(self,path):
+        clf = load(r'MiniBatchKMeans_Cluster_8_Model_2.joblib')
+
+
+        df = pd.read_csv(path)
+        arr = clf.predict(df)
+        self.result_label.show()
+        for i in range(len(arr)):
+            if arr[i] == 0:
+                self.svr_result.setText("Diseased")
+                print("diseased")
+
+            elif arr[i] == 1:
+                self.svr_result.setText("Potential")
+                print("Potential")
+
+            elif arr[i] == 2:
+                self.svr_result.setText("Normal")
+                print("Normal")
 
 if __name__ == "__main__":
     import sys
